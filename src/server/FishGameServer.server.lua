@@ -372,9 +372,11 @@ Remotes.BuyUpgrade.OnServerInvoke = function(player, id)
 	local upgrade = typeof(id) == "string" and Config.GetUpgrade(id)
 	local stats = player:FindFirstChild("Stats")
 	local upgrades = player:FindFirstChild("Upgrades")
-	if not upgrade or not stats or not upgrades or buying[player] then return false, "Please wait..." end
+	-- look the level up *before* taking the debounce: indexing upgrades[id] directly would error if
+	-- that value hasn't loaded yet, and the error would leave buying[player] stuck on for the session
+	local level = upgrades and typeof(id) == "string" and upgrades:FindFirstChild(id)
+	if not upgrade or not stats or not level or buying[player] then return false, "Please wait..." end
 	buying[player] = true
-	local level = upgrades[id]
 	local ok, msg = false, ""
 	if level.Value >= upgrade.Max then
 		msg = "Already maxed!"
